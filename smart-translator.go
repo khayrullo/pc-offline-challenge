@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"golang.org/x/text/language"
 	"math"
 	"time"
@@ -27,18 +28,38 @@ func newSmartTranslator(minDelay, maxDelay time.Duration, errorProbability float
 	return st
 }
 
+var translationCache = make(map[string]translation)
+
+type translation struct {
+	result     string
+	cachedTime time.Time
+}
+
 func (st *smartTranslator) Translate(ctx context.Context, from, to language.Tag, data string) (string, error) {
 	var success string
-	var fail error
+	var err error
 	i := 0
+	key := fmt.Sprintf("%s %s %s", from.String(), to.String(), data)
+	//check cache before resolving from outside
+	if res, ok := translationCache[key]; ok {
+		translation := res.result
+		//delete if cache ttl expired
+		// TODO : seperate cache ttl check to another goroutine
+		expiration := time.Since(res.cachedTime).Hours()
+		if expiration > st.cacheTTL.Hours() {
+			delete(translationCache, key)
+		}
+		return translation, nil
+	}
 	for i < st.maxRetry {
-		success, fail = st.randomTranslator.Translate(ctx, from, to, data)
-		if fail == nil {
+		success, err = st.randomTranslator.Translate(ctx, from, to, data)
+		if err == nil {
+			translationCache[key] = translation{success, time.Now()}
 			return success, nil
 		}
 		timeout := time.Duration(int64(int64(math.Pow(2, float64(i))) * int64(retryPeriod)))
 		time.Sleep(timeout)
 		i++
 	}
-	return success, fail
+	return success, err
 }
