@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"golang.org/x/text/language"
 	"math/rand"
 	"time"
-
-	"golang.org/x/text/language"
 )
 
 func main() {

@@ -8,7 +8,7 @@ type Service struct {
 }
 
 func NewService() *Service {
-	t := newRandomTranslator(
+	t := newSmartTranslator(
 		100*time.Millisecond,
 		500*time.Millisecond,
 		0.1,
