@@ -47,3 +47,23 @@ func TestTrasnalteFromCache(t *testing.T) {
 		t.Errorf("Expected cached but got %s", res)
 	}
 }
+
+func TestTrasnalteConcurrent(t *testing.T) {
+	ctx := context.Background()
+	rand.Seed(time.Now().UTC().UnixNano())
+	//set errorProbability to 1 so it always fails.
+	st := newSmartTranslator(100*time.Millisecond, 500*time.Millisecond, 0, 1, 24*time.Hour)
+	s := &Service{translator: st}
+	result := make([]string, 10)
+	for i := 0; i < 10; i++ {
+		go func(ctx context.Context, s *Service, result []string) {
+			res, _ := s.translator.Translate(ctx, language.English, language.Japanese, "test")
+			result[i] = res
+		}(ctx, s, result)
+	}
+	for i := 0; i < 10; i++ {
+		if result[0] != result[i] {
+			t.Errorf("Result %v not from cache", result[i])
+		}
+	}
+}

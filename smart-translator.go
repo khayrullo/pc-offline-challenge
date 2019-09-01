@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/text/language"
 	"math"
+	"sync"
 	"time"
 )
 
@@ -29,6 +30,7 @@ func newSmartTranslator(minDelay, maxDelay time.Duration, errorProbability float
 }
 
 var translationCache = make(map[string]translation)
+var m sync.Mutex
 
 type translation struct {
 	result     string
@@ -36,6 +38,8 @@ type translation struct {
 }
 
 func (st *smartTranslator) Translate(ctx context.Context, from, to language.Tag, data string) (string, error) {
+	m.Lock()
+	defer m.Unlock()
 	var success string
 	var err error
 	i := 0
