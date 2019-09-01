@@ -12,6 +12,8 @@ func NewService() *Service {
 		100*time.Millisecond,
 		500*time.Millisecond,
 		0.1,
+		4,
+		time.Duration(24*int64(time.Hour)),
 	)
 
 	return &Service{

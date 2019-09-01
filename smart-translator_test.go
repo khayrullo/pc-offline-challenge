@@ -11,7 +11,7 @@ import (
 func TestTranslateFail(t *testing.T) {
 	ctx := context.Background()
 	rand.Seed(time.Now().UTC().UnixNano())
-	st := newSmartTranslator(100*time.Millisecond, 500*time.Millisecond, 1)
+	st := newSmartTranslator(100*time.Millisecond, 500*time.Millisecond, 1, 1, 24*time.Hour)
 	s := &Service{translator: st}
 	_, err := s.translator.Translate(ctx, language.English, language.Japanese, "test")
 	if err == nil {
@@ -22,7 +22,7 @@ func TestTranslateFail(t *testing.T) {
 func TestTranslateSuccess(t *testing.T) {
 	ctx := context.Background()
 	rand.Seed(time.Now().UTC().UnixNano())
-	st := newSmartTranslator(100*time.Millisecond, 500*time.Millisecond, 0)
+	st := newSmartTranslator(100*time.Millisecond, 500*time.Millisecond, 0, 1, 24*time.Hour)
 	s := &Service{translator: st}
 	_, err := s.translator.Translate(ctx, language.English, language.Japanese, "test")
 	if err != nil {

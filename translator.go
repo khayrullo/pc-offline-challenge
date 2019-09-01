@@ -4,17 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"math/rand"
 	"strconv"
 	"time"
 
 	"golang.org/x/text/language"
-)
-
-const (
-	maxRetries  = 4
-	retryPeriod = 100 * time.Millisecond
 )
 
 // Translator in an interface of the service which translates strings
@@ -56,32 +50,4 @@ func (t randomTranslator) randomDuration() time.Duration {
 	delta := t.maxDelay - t.minDelay
 	var delay time.Duration = t.minDelay + time.Duration(rand.Int63n(int64(delta)))
 	return delay
-}
-
-type smartTranslator struct {
-	randomTranslator
-}
-
-func newSmartTranslator(minDelay, maxDelay time.Duration, errorProbability float64) *smartTranslator {
-	st := &smartTranslator{}
-	st.minDelay = minDelay
-	st.maxDelay = maxDelay
-	st.errorProb = errorProbability
-	return st
-}
-
-func (st *smartTranslator) Translate(ctx context.Context, from, to language.Tag, data string) (string, error) {
-	var success string
-	var fail error
-	i := 0
-	for i < maxRetries {
-		success, fail = st.randomTranslator.Translate(ctx, from, to, data)
-		if fail == nil {
-			return success, nil
-		}
-		timeout := time.Duration(int64(int64(math.Pow(2, float64(i))) * int64(retryPeriod)))
-		time.Sleep(timeout)
-		i++
-	}
-	return success, fail
 }
